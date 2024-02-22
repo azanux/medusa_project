@@ -3,7 +3,6 @@ pragma solidity 0.8.1;
 import "../src/ABDKMath64x64.sol";
 
 contract TestABDKMath64x64 {
-
     /* ================================================================
        Library wrappers.
        These functions allow calling the ABDKMath64x64 library.
@@ -139,12 +138,9 @@ contract TestABDKMath64x64 {
        ================================================================ */
     int128 private constant MIN_64x64 = -0x80000000000000000000000000000000;
     int128 private constant MAX_64x64 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-    int256 private constant MAX_256 =
-        0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-    int256 private constant MIN_256 =
-        -0x8000000000000000000000000000000000000000000000000000000000000000;
-    uint256 private constant MAX_U256 =
-        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    int256 private constant MAX_256 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    int256 private constant MIN_256 = -0x8000000000000000000000000000000000000000000000000000000000000000;
+    uint256 private constant MAX_U256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /* ================================================================
        Helper functions.
@@ -152,28 +148,28 @@ contract TestABDKMath64x64 {
 
     // This function allows to compare a and b for equality, discarding
     // the last precision_bits bits.
-    // This implements an absolute value function in order to not use 
+    // This implements an absolute value function in order to not use
     // the implementation from the library under test.
-    function equal_within_precision(int128 a, int128 b, uint256 precision_bits) private returns(bool) {
+    function equal_within_precision(int128 a, int128 b, uint256 precision_bits) private returns (bool) {
         int128 max = (a > b) ? a : b;
         int128 min = (a > b) ? b : a;
         int128 r = (max - min) >> precision_bits;
-        
+
         return (r == 0);
     }
 
-    function equal_within_precision_u(uint256 a, uint256 b, uint256 precision_bits) private returns(bool) {
+    function equal_within_precision_u(uint256 a, uint256 b, uint256 precision_bits) private returns (bool) {
         uint256 max = (a > b) ? a : b;
         uint256 min = (a > b) ? b : a;
         uint256 r = (max - min) >> precision_bits;
-        
+
         return (r == 0);
     }
 
     // This function determines if the relative error between a and b is less
     // than error_percent % (expressed as a 64x64 value)
     // Uses functions from the library under test!
-    function equal_within_tolerance(int128 a, int128 b, int128 error_percent) private returns(bool) {
+    function equal_within_tolerance(int128 a, int128 b, int128 error_percent) private returns (bool) {
         int128 tol_value = abs(mul(a, div(error_percent, fromUInt(100))));
 
         return (abs(sub(b, a)) <= tol_value);
@@ -188,7 +184,7 @@ contract TestABDKMath64x64 {
         int128 lx = toInt(log_2(x));
         int128 ly = toInt(log_2(y));
 
-        return(lx + ly - 1 <= -64);
+        return (lx + ly - 1 <= -64);
     }
 
     // Return how many significant bits will remain after multiplying a and b
@@ -202,28 +198,28 @@ contract TestABDKMath64x64 {
         int256 prec = lx + ly - 1;
 
         if (prec < -64) return 0;
-        else return(64 + uint256(prec));
+        else return (64 + uint256(prec));
     }
 
     // Return the i most significant bits from |n|. If n has less than i significant bits, return |n|
     // Uses functions from the library under test!
     function most_significant_bits(int128 n, uint256 i) private returns (uint256) {
         // Create a mask consisting of i bits set to 1
-        uint256 mask = (2**i) - 1;
+        uint256 mask = (2 ** i) - 1;
 
         // Get the position of the MSB set to 1 of n
         uint256 pos = uint64(toInt(log_2(n)) + 64 + 1);
 
         // Get the positive value of n
-        uint256 value = (n>0) ? uint128(n) : uint128(-n);
+        uint256 value = (n > 0) ? uint128(n) : uint128(-n);
 
         // Shift the mask to match the rightmost 1-set bit
-        if(pos > i) { mask <<= (pos - i); }
+        if (pos > i) mask <<= (pos - i);
 
         return (value & mask);
     }
 
-    // Returns true if the n most significant bits of a and b are almost equal 
+    // Returns true if the n most significant bits of a and b are almost equal
     // Uses functions from the library under test!
     function equal_most_significant_bits_within_precision(int128 a, int128 b, uint256 bits) private returns (bool) {
         uint256 a_bits = uint256(int256(toInt(log_2(a)) + 64));
@@ -248,8 +244,6 @@ contract TestABDKMath64x64 {
     Start of tests
     ================================================================ */
 
-
-
     // Test for associative property
     // (x + y) + z == x + (y + z)
     function add_test_associative(int128 x, int128 y, int128 z) public {
@@ -264,13 +258,11 @@ contract TestABDKMath64x64 {
         int128 e = add(x, ZERO_FP);
         int128 f = x;
 
-
         assert(a == b);
         assert(c == d);
         emit Debug(e, f);
         assert(e == f);
     }
-
 
     // Test (x + y) - y == x
     function add_sub_inverse_operations(int128 x, int128 y) public {
@@ -285,9 +277,9 @@ contract TestABDKMath64x64 {
         assert(a == b);
         assert(c == d);
 
-        if(x != y) {
-            int128 e = sub(x,y);
-            int128 f = sub(y,x);
+        if (x != y) {
+            int128 e = sub(x, y);
+            int128 f = sub(y, x);
             assert(e != f);
         }
     }
@@ -297,7 +289,7 @@ contract TestABDKMath64x64 {
     function div_test_not_commutative(int128 x, int128 y) public {
         int128 a = div(x, y);
         int128 b = div(y, x);
-        if(x != y) {
+        if (x != y) {
             assert(a != b);
         }
         //neutral element of division
@@ -305,7 +297,4 @@ contract TestABDKMath64x64 {
         int128 d = x;
         assert(c == d);
     }
-
-
-
 }

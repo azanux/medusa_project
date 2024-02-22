@@ -7,7 +7,7 @@
 		"callSequenceLength": 100,
 		"corpusDirectory": "./medusa/corpus",
 		"coverageEnabled": true,
-		"deploymentOrder": ["TestABDKMath64x64"],
+		"deploymentOrder": ["TestStaker"],
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [
@@ -42,7 +42,7 @@
 				}
 			},
 			"propertyTesting": {
-				"enabled": true,
+				"enabled": false,
 				"testPrefixes": [
 					"fuzz_"
 				]
@@ -65,14 +65,14 @@
 	"compilation": {
 		"platform": "crytic-compile",
 		"platformConfig": {
-			"target": "./test/TestABDKMath64x64.sol",
-			"solcVersion": "0.8.1",
+			"target": "./test/TestStaker.sol",
+			"solcVersion": "0.8.17",
 			"exportDirectory": "",
 			"args": []
 		}
 	},
 	"logging": {
-		"level": "info",
+		"level": "debug",
 		"logDirectory": ""
 	}
 }

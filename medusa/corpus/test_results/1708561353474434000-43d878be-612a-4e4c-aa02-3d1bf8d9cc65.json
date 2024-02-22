@@ -1,0 +1,26 @@
+[
+ {
+  "call": {
+   "from": "0x0000000000000000000000000000000000020000",
+   "to": "0xa647ff3c36cfab592509e13860ab8c4f28781a66",
+   "nonce": 0,
+   "value": "0x0",
+   "gasLimit": 12500000,
+   "gasPrice": "0x1",
+   "gasFeeCap": "0x0",
+   "gasTipCap": "0x0",
+   "data": "0x2f70ad0cffffffffffffffffffffffffffffffffa72ff91204ec06f5327062faa5e54f1dfffffffffffffffffffffffffffffffffffffffffd3a37a020b4ea2190e814f3",
+   "dataAbiValues": {
+    "methodName": "add_sub_inverse_operations",
+    "inputValues": [
+     "-14410669180048119376044417527464983",
+     "1850916500206416374341260011610418163"
+    ]
+   },
+   "AccessList": null,
+   "SkipAccountChecks": false
+  },
+  "blockNumberDelay": 7798,
+  "blockTimestampDelay": 131072
+ }
+]

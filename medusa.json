@@ -7,7 +7,7 @@
 		"callSequenceLength": 100,
 		"corpusDirectory": "./medusa/corpus",
 		"coverageEnabled": true,
-		"deploymentOrder": ["TestStaker"],
+		"deploymentOrder": ["TestUniswap"],
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [
@@ -65,8 +65,8 @@
 	"compilation": {
 		"platform": "crytic-compile",
 		"platformConfig": {
-			"target": "./test/TestStaker.sol",
-			"solcVersion": "0.8.17",
+			"target": "./test/TestUniswap.sol",
+			"solcVersion": "0.6.0",
 			"exportDirectory": "",
 			"args": []
 		}

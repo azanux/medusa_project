@@ -18,7 +18,7 @@ contract Setup {
     UniswapV2ERC20 testToken2;
     Users user;
     bool completed;
-    
+
     constructor() public {
         testToken1 = new UniswapV2ERC20();
         testToken2 = new UniswapV2ERC20();
@@ -29,20 +29,17 @@ contract Setup {
         testToken1 = UniswapV2ERC20(testTokenA);
         testToken2 = UniswapV2ERC20(testTokenB);
         user = new Users();
-        user.proxy(address(testToken1),abi.encodeWithSelector(testToken1.approve.selector, address(pair),uint(-1)));
-        user.proxy(address(testToken2), abi.encodeWithSelector(testToken2.approve.selector,address(pair),uint(-1)));
+        user.proxy(address(testToken1), abi.encodeWithSelector(testToken1.approve.selector, address(pair), uint256(-1)));
+        user.proxy(address(testToken2), abi.encodeWithSelector(testToken2.approve.selector, address(pair), uint256(-1)));
     }
 
-    function _init(uint amount1, uint amount2) internal {
+    function _init(uint256 amount1, uint256 amount2) internal {
         testToken1.mint(address(user), amount1);
         testToken2.mint(address(user), amount2);
         completed = true;
     }
 
-
-    function _between(uint val, uint low, uint high) internal pure returns(uint) {
-        return low + (val % (high-low +1)); 
+    function _between(uint256 val, uint256 low, uint256 high) internal pure returns (uint256) {
+        return low + (val % (high - low + 1));
     }
-
-
 }

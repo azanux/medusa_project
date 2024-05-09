@@ -1,0 +1,12 @@
+Contract: build/Token(0xf0c5003178c1710f47f42beb4cf1323edede4912)
+Instruction Coverage: 691/940 (73.51%) 
+Branch Coverage: 34/48 (70.83%) 
+--------------------------------
+Contract: build/Ownership(0x887db5715868498cff494b5dcc8eda6ce5b7652a)
+Instruction Coverage: 53/136 (38.97%) 
+Branch Coverage: 4/8 (50.00%) 
+--------------------------------
+Contract: build/Pausable(0x0374004a00b3990a17ca0e76bc5ca8ca84855756)
+Instruction Coverage: 160/310 (51.61%) 
+Branch Coverage: 13/18 (72.22%) 
+--------------------------------

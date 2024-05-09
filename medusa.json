@@ -7,7 +7,7 @@
 		"callSequenceLength": 100,
 		"corpusDirectory": "./medusa/corpus",
 		"coverageEnabled": true,
-		"deploymentOrder": ["TestUniswap"],
+		"deploymentOrder": ["TestToken"],
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [
@@ -24,7 +24,7 @@
 			"stopOnFailedContractMatching": true,
 			"stopOnNoTests": true,
 			"testAllContracts": false,
-			"traceAll": true,
+			"traceAll": false,
 			"assertionTesting": {
 				"enabled": true,
 				"testViewMethods": false,
@@ -65,8 +65,8 @@
 	"compilation": {
 		"platform": "crytic-compile",
 		"platformConfig": {
-			"target": "./test/TestUniswap.sol",
-			"solcVersion": "0.6.0",
+			"target": "./test/medusa/TestToken.t.sol",
+			"solcVersion": "0.8.0",
 			"exportDirectory": "",
 			"args": []
 		}

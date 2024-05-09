@@ -7,3 +7,9 @@ evm_version = "berlin"
 remappings=["@openzeppelin/=lib/openzeppelin-contracts/"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[invariant]
+# Enable invariant checking
+runs = 1000 
+depth = 20
+include_storage = true

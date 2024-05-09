@@ -11,10 +11,8 @@ contract GRYDL is ERC20 {
         _mint(_to, _amount);
     }
 
- 
     function transferFrom(address _from, address _to, uint256 _amount) public override returns (bool) {
         _transfer(_from, _to, _amount);
         return true;
     }
-
 }

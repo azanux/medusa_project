@@ -50,6 +50,10 @@ Run this command
 ```shell
 medusa init
 ```
+### Run the fuzzing
+```shell
+medusa fuzz --target-contracts "TestContract, TestOtherContract"--test-limit 10_000
+```
 
 ### File configuration
 
@@ -64,174 +68,102 @@ configure medusa with the target and Contract name in medusa.json
 			"solcVersion": "0.7.6",       
 ```
 
-### Contract to test
-In this section, we will provide an example of using Medusa with the **Token.sol** contract.
+# TestToken
+This test is to break the invariants, and see how Medusa manage to break the Invariant
+- assure that the balance of the caller can be llower than we he strat the transfer
+- assure that the contract would never be in pause
 
+## Foundry Fuzzer
+We will use foudry invariant futter to break the 2 invariants in test Contract foundry/TestToken.sol
 
-Create your test Contract 
-```javascript
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+In the first invariant we ensure that the contract Token would never pause, we can see that the invariant break with 
+ - Owner() with this sender  : sender=0x0000000000000000000000000000000000000234
+ - paused() with this sender  : sender=0x0000000000000000000000000000000000000234
 
-contract Ownership {
-    address owner = msg.sender;
+```shell
+forge test --mt invariant_is_pause
 
-    function Owner() public {
-        owner = msg.sender;
-    }
+Ran 1 test for test/foundry/TestToken.t.sol:TestToken
+[FAIL. Reason: panic: assertion failed (0x01)]
+        [Sequence]
+                sender=0x0000000000000000000000000000000000000234 addr=[src/Token.sol:Token]0x697445470b4c7b6024d79A43ce40A9B683BF28a7 calldata=Owner() args=[]
+                sender=0x0000000000000000000000000000000000000234 addr=[src/Token.sol:Token]0x697445470b4c7b6024d79A43ce40A9B683BF28a7 calldata=paused() args=[]
+ invariant_is_pause() (runs: 256, calls: 3835, reverts: 2543)
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 181.64ms (179.99ms CPU time)
 
-    modifier isOwner() {
-        require(owner == msg.sender);
-        _;
-    }
-}
-
-contract Pausable is Ownership {
-    bool is_paused;
-
-    modifier ifNotPaused() {
-        require(!is_paused);
-        _;
-    }
-
-    function paused() public isOwner {
-        is_paused = true;
-    }
-
-    function resume() public isOwner {
-        is_paused = false;
-    }
-}
-
-contract Token is Pausable {
-    mapping(address => uint256) public balances;
-
-    function transfer(address to, uint256 value) public ifNotPaused {
-        balances[msg.sender] -= value;
-        balances[to] += value;
-    }
-}
+Ran 1 test suite in 322.81ms (181.64ms CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
 ```
 
-### Medusa Invariant test Contract
+In the second in variant we will ensure that the balance of the user never decrease, we could see that the invariant is broken with
+1- airDrop()
+```shell
+forge test --mt invariant_balance
 
-Let's now write the test class along with our invariant that will test when the contract is paused and the owner is set to 0x0000, how Medusa can invalidate this invariant
-```javascript
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+Failing tests:
+Encountered 1 failing test in test/foundry/TestToken.t.sol:TestToken
+[FAIL. Reason: EvmError: InvalidFEOpcode]
+        [Sequence]
+                sender=0x0000000000000000000000000000000000ABC124 addr=[src/Token.sol:Token]0x697445470b4c7b6024d79A43ce40A9B683BF28a7 calldata=airDrop() args=[]
+ invariant_balance() (runs: 256, calls: 3827, reverts: 2606)
 
-import {Token} from "../src/token.sol";
+Encountered a total of 1 failing tests, 0 tests succeeded
 
-contract TestTokenPause is Token {
-
-    address echidna_caller = msg.sender;
-
-    constructor() {
-        balances[echidna_caller] = 10000;
-        paused();
-        owner = address(0);
-    }
-    // add the property
-
-    function fuzz_test_upause() public view returns (bool) {
-        return is_paused == true;
-    }
-}
 ```
 
-### Run the test
-Once everything is ok , you can run the command
+## Medusa Fuzzer
+In this section we will break the invariant using Medusa in test contract medusa/TestToken.t.sol
+
+in the first test , we will ensure that the contract could never be paused , we could see that the invariant is broken with 
+1- Onwer()
+2- paused()
 ```shell
 medusa fuzz
-```
-If medusa break teh invariant you should see the call senquence
-```shell
-⇾ Reading the configuration file at: /Users/azanux/Desktop/hacking/code/testing/medusa_project/medusa.json
-⇾ Compiling targets with crytic-compile
-⇾ fuzz: elapsed: 0s, calls: 0 (0/sec), seq/s: 0, coverage: 0
-⇾ Creating 10 workers...
-⇾ Fuzzer stopped, test results follow below ...
-⇾ [FAILED] Property Test: TestTokenPause.fuzz_test_upause()
-Test for method "TestTokenPause.fuzz_test_upause()" failed after the following call sequence:
+
+
+⇾ [PASSED] Assertion Test: TestToken.test_balance() module=fuzzer
+⇾ [FAILED] Assertion Test: TestToken.test_upause(uint256)
+Test for method "TestToken.test_upause(uint256)" resulted in an assertion failure after the following call sequence:
 [Call Sequence]
-1) TestTokenPause.Owner() (block=13886, time=360625, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000030000)
-2) TestTokenPause.resume() (block=27772, time=564562, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000030000)
+1) Token.Owner() (block=59404, time=299471, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000030000)
+2) Token.paused() (block=94009, time=450327, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000030000)
+3) TestToken.test_upause(76787165032705673776020647130283502101399084199848915639357699339010813055333) (block=147459, time=726791, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000020000)
 [Execution Trace]
- => [call] TestTokenPause.resume() (addr=0xA647ff3c36cFab592509E13860ab8c4F28781a66, value=0, sender=0x0000000000000000000000000000000000030000)
-         => [return ()]
+ => [call] TestToken.echidna_upause(76787165032705673776020647130283502101399084199848915639357699339010813055333) (addr=0xA647ff3c36cFab592509E13860ab8c4F28781a66, value=0, sender=0x0000000000000000000000000000000000020000)
+         => [call] Token.is_paused() (addr=0x54919A19522Ce7c842E25735a9cFEcef1c0a06dA, value=<nil>, sender=0xA647ff3c36cFab592509E13860ab8c4F28781a66)
+                 => [return (true)]
+         => [panic: assertion failed]
 
-[Property Test Execution Trace]
+ module=fuzzer
+⇾ Test summary: 1 test(s) passed, 1 test(s) failed module=fuzzer
+⇾ Coverage report saved to file: medusa/corpus/coverage_report.html module=fuzzer
+```
+
+In the second invariant test, we will ensure that the contract the balance of the atcaker can't increase
+we can see that the invariant is broken with 
+1 -Owner() 
+```shell
+medusa fuzz
+
+⇾ fuzz: elapsed: 0s, calls: 0 (0/sec), seq/s: 0, coverage: 6, mem: 84/110 MB, resets/s: 0 module=fuzzer
+⇾ Creating 10 workers... module=fuzzer
+⇾ Fuzzer stopped, test results follow below ... module=fuzzer
+⇾ [FAILED] Assertion Test: TestToken.test_balance()
+Test for method "TestToken.test_balance()" resulted in an assertion failure after the following call sequence:
+[Call Sequence]
+1) Token.Owner() (block=18514, time=424321, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000020000)
+2) Token.setBalance(0x0000000000000000000000000000000000000124, 114440900143069207452236327284280234278703230472273420653648038843176422751370) (block=42070, time=505964, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000020000)
+3) TestToken.test_balance() (block=49296, time=988088, gas=12500000, gasprice=1, value=0, sender=0x0000000000000000000000000000000000010000)
 [Execution Trace]
- => [call] TestTokenPause.fuzz_test_upause() (addr=0xA647ff3c36cFab592509E13860ab8c4F28781a66, value=0, sender=0x0000000000000000000000000000000000010000)
-         => [return (false)]
+ => [call] TestToken.echidna_balance() (addr=0xA647ff3c36cFab592509E13860ab8c4F28781a66, value=0, sender=0x0000000000000000000000000000000000010000)
+         => [call] Token.balances(0x0000000000000000000000000000000000000124) (addr=0x54919A19522Ce7c842E25735a9cFEcef1c0a06dA, value=<nil>, sender=0xA647ff3c36cFab592509E13860ab8c4F28781a66)
+                 => [return (114440900143069207452236327284280234278703230472273420653648038843176422751370)]
+         => [panic: assertion failed]
 
-⇾ Test summary: 0 test(s) passed, 1 test(s) failed
-````
-
-
-
-
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+ module=fuzzer
+⇾ Test summary: 0 test(s) passed, 1 test(s) failed module=fuzzer
+⇾ Coverage report saved to file: medusa/corpus/coverage_report.html module=fuzzer
 ```
 
-### Test
 
-```shell
-$ forge test
-```
 
-### Format
 
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
